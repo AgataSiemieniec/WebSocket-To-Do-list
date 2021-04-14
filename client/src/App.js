@@ -1,8 +1,19 @@
 import React from 'react';
+import io from 'socket.io-client';
 
 class App extends React.Component {
+  state = {
+    tasks: [],
+  };
+
+  componentDidMount() {
+    this.socket = io.connect('http://localhost:8000');
+    this.socket.on('addTask', (task) => this.addTask(task));
+    this.socket.on('removeTask', (removedtask) => this.removeTask(removedtask));
+  };
 
   render() {
+    const { tasks } = this.state;
     return (
       <div className="App">
     
@@ -14,10 +25,19 @@ class App extends React.Component {
           <h2>Tasks</h2>
     
           <ul className="tasks-section__list" id="tasks-list">
-            <li className="task">Shopping <button className="btn btn--red">Remove</button></li>
-            <li className="task">Go out with a dog <button className="btn btn--red">Remove</button></li>
+            {tasks.map((task) => (
+              <li 
+                className="task"
+                key={task.id}>
+                {task.name}
+                <button 
+                  className="btn btn--red"
+                  onClick={() => this.removeTask(task.id)}
+                  >Remove
+                </button>
+              </li>
+            ))}
           </ul>
-    
           <form id="add-task-form">
             <input className="text-input" autoComplete="off" type="text" placeholder="Type your description" id="task-name" />
             <button className="btn" type="submit">Add</button>
