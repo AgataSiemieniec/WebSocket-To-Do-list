@@ -1,5 +1,4 @@
 const express = require('express');
-const path = require('path');
 const socket = require('socket.io');
 
 const app = express();
@@ -7,15 +6,13 @@ const app = express();
 const tasks = [];
 console.log('tasks', tasks);
 
-app.use(express.static(path.join(__dirname, '/client')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '/client/index.html'));
-});
-
 const server = app.listen(process.env.PORT || 8000, () => {
     console.log('Server is running...');
   });
+
+app.use((req, res) => {
+    res.status(404).send({ message: 'Not found...' });
+});
 
 const io = socket(server);
 
@@ -29,18 +26,14 @@ io.on('connection', (socket) => {
         console.log('User ' + socket.id + 'just added new task' + task);
       });
 
-      socket.on('removeTask', (removedTask) => {
+      socket.on('removeTask', (id) => {
         const removedTask = tasks.find(tasks => tasks.id === socket.id);
         const taskToRemove = tasks.indexOf(removedTask);
         if(removedUser){
-            socket.broadcast.emit('removeTask', removedTask);
+            socket.broadcast.emit('removeTask', id);
             users.splice(taskToRemove, 1);
             console.log(task + 'has been deleted');
         }
       });
-});
-
-app.use((req, res) => {
-    res.status(404).send({ message: 'Not found...' });
 });
 
